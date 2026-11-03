@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M.K. SERVICE - Admin Pro Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-100 font-sans text-gray-900 min-h-screen pb-12">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-base leading-tight">M.K. SERVICE</h1>
+          <p class="text-[10px] text-blue-300 font-bold uppercase tracking-wider">Admin Dispatch Studio</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="bg-emerald-500/20 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Live
+        </span>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="bg-slate-800 border-t border-slate-700 px-4">
+      <div class="max-w-7xl mx-auto flex space-x-2 overflow-x-auto py-2 text-xs font-bold">
+        <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="px-4 py-2 rounded-lg bg-blue-600 text-white transition flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-chart-pie"></i> डैशबोर्ड (Dashboard)
+        </button>
+        <button onclick="switchTab('newBooking')" id="tabBtn-newBooking" class="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-plus-circle"></i> नई बुकिंग बनाएं
+        </button>
+        <button onclick="switchTab('liveBookings')" id="tabBtn-liveBookings" class="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-tower-broadcast"></i> लाइव बुकिंग स्टेटस
+        </button>
+        <button onclick="switchTab('manageTech')" id="tabBtn-manageTech" class="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-users-gear"></i> टेक्नीशियन टीम मैनेजमेंट
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 md:p-6">
+
+    <!-- 1. DASHBOARD TAB -->
+    <section id="section-dashboard" class="space-y-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-xs text-slate-500 font-bold block mb-1">कुल बुकिंग (Total)</span>
+          <span class="text-3xl font-black text-slate-800" id="statTotal">0</span>
+        </div>
+        <div class="bg-amber-50 p-5 rounded-2xl shadow-sm border border-amber-200">
+          <span class="text-xs text-amber-700 font-bold block mb-1">पेंडिंग (Pending)</span>
+          <span class="text-3xl font-black text-amber-600" id="statPending">0</span>
+        </div>
+        <div class="bg-blue-50 p-5 rounded-2xl shadow-sm border border-blue-200">
+          <span class="text-xs text-blue-700 font-bold block mb-1">प्रगति में (In-Progress)</span>
+          <span class="text-3xl font-black text-blue-600" id="statProgress">0</span>
+        </div>
+        <div class="bg-emerald-50 p-5 rounded-2xl shadow-sm border border-emerald-200">
+          <span class="text-xs text-emerald-700 font-bold block mb-1">पूर्ण (Completed)</span>
+          <span class="text-3xl font-black text-emerald-600" id="statCompleted">0</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-3">
+        <h2 class="text-base font-black text-slate-800">M.K. SERVICE एडमिन पोर्टल में आपका स्वागत है!</h2>
+        <p class="text-xs text-slate-500 max-w-xl mx-auto">ऊपर दिए गए नेविगेशन टैब से आप नई बुकिंग बना सकते हैं, लाइव स्टेटस देख सकते हैं या नए टेक्नीशियन पार्टनर जोड़ सकते हैं।</p>
+      </div>
+    </section>
+
+    <!-- 2. NEW BOOKING FORM TAB -->
+    <section id="section-newBooking" class="hidden max-w-2xl mx-auto space-y-4">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-calendar-plus text-blue-600"></i> <span id="formTitleText">नया बुकिंग फॉर्म</span>
+          </h2>
+          <button onclick="resetJobForm()" id="cancelEditBtn" class="hidden text-xs bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg">रद्द करें</button>
+        </div>
+
+        <form onsubmit="handleSaveJob(event)" class="space-y-3.5 text-xs">
+          <input type="hidden" id="editJobKey" value="">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">टेक्नीशियन पार्टनर चुनें *</label>
+            <select id="selTech" required class="w-full p-3 border border-slate-300 rounded-xl font-bold bg-slate-50 focus:ring-2 focus:ring-blue-500">
+              <!-- Dynamically Loaded -->
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">टिकट / जॉब ID *</label>
+              <input type="text" id="jobTicketId" value="JOB-101" required class="w-full p-3 border border-slate-300 rounded-xl font-bold">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">दिनांक (Date) *</label>
+              <input type="date" id="jobDate" required class="w-full p-3 border border-slate-300 rounded-xl font-bold">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ग्राहक का नाम / विभाग *</label>
+            <input type="text" id="custName" placeholder="उदा. CEO DANAPUR CANTT" required class="w-full p-3 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">मोबाइल नंबर *</label>
+            <input type="text" id="custPhone" placeholder="7549652212" required class="w-full p-3 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">सर्विस एड्रेस / लोकेशन *</label>
+            <textarea id="custAddr" rows="2" placeholder="गोला रोड पटना..." required class="w-full p-3 border border-slate-300 rounded-xl"></textarea>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">समस्या या सर्विस विवरण *</label>
+            <input type="text" id="jobDesc" placeholder="1.5TR AC Repair / Service" required class="w-full p-3 border border-slate-300 rounded-xl">
+          </div>
+          <button type="submit" id="submitJobBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm">
+            <i class="fa-solid fa-paper-plane mr-1"></i> पार्टनर को जॉब भेजें
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. LIVE BOOKINGS STATUS TAB -->
+    <section id="section-liveBookings" class="hidden space-y-4">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-tower-broadcast text-blue-600"></i> सभी बुकिंग्स और लाइव स्टेटस (Edit / Delete)
+          </h2>
+          <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-lg">Realtime Sync</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-bold border-b">
+                <th class="p-3">टिकट / ग्राहक विवरण</th>
+                <th class="p-3">असाइन पार्टनर</th>
+                <th class="p-3">समस्या</th>
+                <th class="p-3">स्टेटस</th>
+                <th class="p-3 text-right">कार्रवाई (Action)</th>
+              </tr>
+            </thead>
+            <tbody id="adminJobsTableBody">
+              <tr><td colspan="5" class="p-6 text-center text-slate-400">डेटा लोड हो रहा है...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. MANAGE TECHNICIANS TAB -->
+    <section id="section-manageTech" class="hidden max-w-2xl mx-auto space-y-6">
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+        <h2 class="text-sm font-black text-slate-800 border-b pb-3 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-emerald-600"></i> नया टेक्नीशियन पार्टनर जोड़ें
+        </h2>
+        <form onsubmit="handleAddTechnician(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">पूरा नाम (Full Name) *</label>
+            <input type="text" id="techNameInput" placeholder="उदा. राकेश कुमार" required class="w-full p-3 border border-slate-300 rounded-xl">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">मोबाइल नंबर (Login ID) *</label>
+              <input type="text" id="techPhoneInput" placeholder="9876543210" required class="w-full p-3 border border-slate-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">पासवर्ड *</label>
+              <input type="text" id="techPassInput" value="123456" required class="w-full p-3 border border-slate-300 rounded-xl font-bold">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow transition text-sm">
+            <i class="fa-solid fa-user-check mr-1"></i> पार्टनर रजिस्टर करें
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-3">
+        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b pb-2">रजिस्टर्ड टेक्नीशियन सूची (List & Delete)</h3>
+        <div id="techniciansListContainer" class="space-y-2">
+          <!-- Dynamically Loaded -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ⚠️ अपनी Firebase Project की असली डिटेल्स यहाँ डाले
+const firebaseConfig = {
+  apiKey: "AIzaSyCt5Wtgf0KNRW0CoLIOF-e8tC3Zo7Wcl1s",
+  authDomain: "databasemk.firebaseapp.com",
+  databaseURL: "https://databasemk-default-rtdb.firebaseio.com",
+  projectId: "databasemk",
+  storageBucket: "databasemk.firebasestorage.app",
+  messagingSenderId: "112988164483",
+  appId: "1:112988164483:web:06580d8e97dc2470dd26b6",
+  measurementId: "G-VD31FWJPD3"
+};
+[03/11, 12:37 am] Idea 2: const firebaseConfig = {
+  apiKey: "AIzaSyCt5Wtgf0KNRW0CoLIOF-e8tC3Zo7Wcl1s",
+  authDomain: "databasemk.firebaseapp.com",
+  databaseURL: "https://databasemk-default-rtdb.firebaseio.com",
+  projectId: "databasemk",
+  storageBucket: "databasemk.firebasestorage.app",
+  messagingSenderId: "112988164483",
+  appId: "1:112988164483:web:06580d8e97dc2470dd26b6",
+  measurementId: "G-VD31FWJPD3"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let allTechnicians = [];
+    let allJobs = [];
+
+    window.onload = function() {
+      document.getElementById('jobDate').valueAsDate = new Date();
+      initFirebaseListeners();
+    };
+
+    function switchTab(tabName) {
+      ['dashboard', 'newBooking', 'liveBookings', 'manageTech'].forEach(t => {
+        document.getElementById('section-' + t).classList.add('hidden');
+        document.getElementById('tabBtn-' + t).className = "px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition flex items-center gap-1.5 shrink-0";
+      });
+      document.getElementById('section-' + tabName).classList.remove('hidden');
+      document.getElementById('tabBtn-' + tabName).className = "px-4 py-2 rounded-lg bg-blue-600 text-white transition flex items-center gap-1.5 shrink-0";
+    }
+
+    function initFirebaseListeners() {
+      // 1. Listen Technicians
+      db.ref('mk_technicians').on('value', (snapshot) => {
+        const data = snapshot.val();
+        allTechnicians = data ? Object.values(data) : [];
+        
+        // Default Techs if empty
+        if (!data) {
+          db.ref('mk_technicians/9876543210').set({ name: "Amit Sharma", phone: "9876543210", pass: "123456" });
+          db.ref('mk_technicians/9123456789').set({ name: "Rahul Kumar", phone: "9123456789", pass: "123456" });
+        }
+        renderTechUI();
+      }, (error) => {
+        console.error("Firebase Read Error:", error);
+        alert("डेटाबेस कनेक्ट करने में समस्या आ रही है। कृपया अपनी Firebase Config और Rules चेक करें।");
+      });
+
+      // 2. Listen Jobs
+      db.ref('mk_service_jobs').on('value', (snapshot) => {
+        const data = snapshot.val();
+        allJobs = data ? Object.values(data) : [];
+        renderDashboardStats();
+        renderLiveJobsTable();
+      });
+    }
+
+    function renderTechUI() {
+      const select = document.getElementById('selTech');
+      if(allTechnicians.length === 0) {
+        select.innerHTML = `<option value="">कोई टेक्नीशियन उपलब्ध नहीं है</option>`;
+      } else {
+        select.innerHTML = allTechnicians.map(t => `<option value="${t.name}">${t.name} (${t.phone})</option>`).join('');
+      }
+
+      const container = document.getElementById('techniciansListContainer');
+      if (allTechnicians.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">कोई टेक्नीशियन रजिस्टर्ड नहीं है।</p>`;
+        return;
+      }
+
+      container.innerHTML = allTechnicians.map(t => `
+        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <div>
+            <span class="font-bold text-slate-800 text-xs block">${t.name}</span>
+            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-phone mr-1"></i>${t.phone} | <i class="fa-solid fa-lock ml-2 mr-1"></i>${t.pass}</span>
+          </div>
+          <button onclick="deleteTechnician('${t.phone}')" class="text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function handleAddTechnician(e) {
+      e.preventDefault();
+      const name = document.getElementById('techNameInput').value.trim();
+      const phone = document.getElementById('techPhoneInput').value.trim();
+      const pass = document.getElementById('techPassInput').value.trim();
+
+      if (!name || !phone || !pass) {
+        alert("कृपया सभी जानकारी भरें!");
+        return;
+      }
+
+      // Save to Firebase Database
+      db.ref('mk_technicians/' + phone).set({ name, phone, pass })
+        .then(() => {
+          alert("टेक्नीशियन सफलतापूर्वक जोड़ दिया गया है!");
+          document.getElementById('techNameInput').value = "";
+          document.getElementById('techPhoneInput').value = "";
+          document.getElementById('techPassInput').value = "123456";
+        })
+        .catch((error) => {
+          alert("टेक्नीशियन सेव करने में एरर आया: " + error.message);
+          console.error("Firebase Write Error:", error);
+        });
+    }
+
+    function deleteTechnician(phone) {
+      if (confirm("क्या आप वाकई इस टेक्नीशियन को हटाना चाहते हैं?")) {
+        db.ref('mk_technicians/' + phone).remove()
+          .then(() => alert("टेक्नीशियन हटा दिया गया है!"))
+          .catch(err => alert("डिलीट करने में एरर: " + err.message));
+      }
+    }
+
+    function handleSaveJob(e) {
+      e.preventDefault();
+      const key = document.getElementById('editJobKey').value || 'JOB_' + Date.now();
+      const ticketId = document.getElementById('jobTicketId').value;
+      const status = document.getElementById('editJobKey').value ? document.getElementById('editJobKey').getAttribute('data-status') : "Pending";
+
+      const jobObj = {
+        key,
+        id: ticketId,
+        date: document.getElementById('jobDate').value,
+        tech: document.getElementById('selTech').value,
+        custName: document.getElementById('custName').value,
+        custPhone: document.getElementById('custPhone').value,
+        custAddr: document.getElementById('custAddr').value,
+        serviceType: document.getElementById('jobDesc').value,
+        status
+      };
+
+      db.ref('mk_service_jobs/' + key).set(jobObj)
+        .then(() => {
+          alert("जॉब सफलतापूर्वक सेव हो गया है!");
+          resetJobForm();
+          switchTab('liveBookings');
+        })
+        .catch(err => alert("जॉब सेव करने में एरर: " + err.message));
+    }
+
+    function editJob(key) {
+      const job = allJobs.find(j => j.key === key);
+      if (!job) return;
+
+      switchTab('newBooking');
+      document.getElementById('editJobKey').value = job.key;
+      document.getElementById('editJobKey').setAttribute('data-status', job.status);
+      document.getElementById('jobTicketId').value = job.id;
+      document.getElementById('jobDate').value = job.date;
+      document.getElementById('selTech').value = job.tech;
+      document.getElementById('custName').value = job.custName;
+      document.getElementById('custPhone').value = job.custPhone;
+      document.getElementById('custAddr').value = job.custAddr;
+      document.getElementById('jobDesc').value = job.serviceType;
+
+      document.getElementById('formTitleText').innerText = "जॉब एडिट करें";
+      document.getElementById('submitJobBtn').innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> जॉब अपडेट करें`;
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+    }
+
+    function deleteJob(key) {
+      if (confirm("क्या आप इस जॉब को डिलीट करना चाहते हैं?")) {
+        db.ref('mk_service_jobs/' + key).remove()
+          .then(() => alert("जॉब डिलीट हो गया है!"));
+      }
+    }
+
+    function resetJobForm() {
+      document.getElementById('editJobKey').value = "";
+      document.getElementById('jobTicketId').value = "JOB-" + Math.floor(100 + Math.random() * 900);
+      document.getElementById('custName').value = "";
+      document.getElementById('custPhone').value = "";
+      document.getElementById('custAddr').value = "";
+      document.getElementById('jobDesc').value = "";
+      document.getElementById('formTitleText').innerText = "नया बुकिंग फॉर्म";
+      document.getElementById('submitJobBtn').innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i> पार्टनर को जॉब भेजें`;
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    function renderDashboardStats() {
+      document.getElementById('statTotal').innerText = allJobs.length;
+      document.getElementById('statPending').innerText = allJobs.filter(j => j.status === 'Pending').length;
+      document.getElementById('statProgress').innerText = allJobs.filter(j => j.status === 'In-Progress').length;
+      document.getElementById('statCompleted').innerText = allJobs.filter(j => j.status === 'Completed').length;
+    }
+
+    function renderLiveJobsTable() {
+      const tbody = document.getElementById('adminJobsTableBody');
+      if (allJobs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">कोई बुकिंग उपलब्ध नहीं है।</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allJobs.map(j => `
+        <tr class="border-b hover:bg-slate-50 transition">
+          <td class="p-3">
+            <span class="font-black text-slate-900 block">${j.id}</span>
+            <span class="font-bold text-slate-800">${j.custName}</span>
+            <span class="text-[10px] text-slate-500 block"><i class="fa-solid fa-phone mr-1"></i>${j.custPhone}</span>
+          </td>
+          <td class="p-3 font-bold text-blue-700">${j.tech}</td>
+          <td class="p-3 text-slate-600 max-w-[200px] truncate">${j.serviceType}</td>
+          <td class="p-3">
+            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase ${
+              j.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+              j.status === 'In-Progress' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+            }">${j.status}</span>
+          </td>
+          <td class="p-3 text-right space-x-1">
+            <button onclick="editJob('${j.key}')" class="bg-slate-800 text-white px-2.5 py-1.5 rounded-xl text-xs shadow hover:bg-slate-900">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="deleteJob('${j.key}')" class="bg-rose-600 text-white px-2.5 py-1.5 rounded-xl text-xs shadow hover:bg-rose-700">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>ho 
+
+
